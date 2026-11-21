@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>РАНОК — Кавʼярня та AI-бронювання столиків (Demo MVP)</title>
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --surface: #FFFFFF;
+      --surface-soft: #F3ECE2;
+      --ink: #221B17;
+      --ink-muted: #6C5E54;
+      --accent: #B45F2B;
+      --accent-hover: #974D20;
+      --accent-soft: #F9EAE0;
+      --sage: #2A6F4E;
+      --sage-soft: #E5F3EC;
+      --warn: #A84A28;
+      --border: #E6DCD0;
+      --shadow: 0 10px 30px rgba(34, 27, 23, 0.06);
+      --radius: 18px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Demo Notice Bar */
+    .demo-bar {
+      background: #221B17;
+      color: #F4EDE4;
+      font-size: 12.5px;
+      padding: 7px 16px;
+      text-align: center;
+    }
+    .demo-bar strong { color: #F5B88E; font-weight: 600; }
+
+    /* Sticky Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(250, 247, 242, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-size: 17px;
+    }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    nav a {
+      text-decoration: none;
+      color: var(--ink-muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    nav a:hover { color: var(--ink); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.12s, background 0.15s, border-color 0.15s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--surface-soft); }
+    .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+    /* Hero */
+    .hero {
+      padding: 46px 0 36px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--sage-soft);
+      color: var(--sage);
+      margin-bottom: 16px;
+    }
+    .status-pill.closed {
+      background: #F9E5DE;
+      color: var(--warn);
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    h1 {
+      font-size: clamp(30px, 4.4vw, 46px);
+      line-height: 1.13;
+      margin: 0 0 14px;
+      letter-spacing: -0.02em;
+    }
+    .hero p.lead {
+      font-size: 16.5px;
+      color: var(--ink-muted);
+      margin: 0 0 24px;
+      max-width: 560px;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      font-size: 13.5px;
+      color: var(--ink-muted);
+    }
+    .hero-meta span strong { color: var(--ink); }
+
+    .hero-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+    .hero-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+    .bubble-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13.5px;
+    }
+    .bp-user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+      padding: 9px 13px;
+      border-radius: 14px 14px 4px 14px;
+      max-width: 86%;
+    }
+    .bp-ai {
+      align-self: flex-start;
+      background: var(--surface-soft);
+      color: var(--ink);
+      padding: 10px 13px;
+      border-radius: 14px 14px 14px 4px;
+      max-width: 92%;
+    }
+
+    /* Sections */
+    section { padding: 40px 0; }
+    .sec-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .sec-head h2 {
+      font-size: clamp(24px, 3vw, 31px);
+      margin: 0;
+      letter-spacing: -0.015em;
+    }
+    .sec-sub {
+      color: var(--ink-muted);
+      font-size: 14.5px;
+      margin: 4px 0 0;
+    }
+
+    /* Menu */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-muted);
+      padding: 8px 15px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .menu-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .menu-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .menu-title { font-weight: 700; font-size: 15.5px; margin: 0; }
+    .menu-price {
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      font-size: 15px;
+    }
+    .menu-desc {
+      margin: 6px 0 0;
+      font-size: 13.5px;
+      color: var(--ink-muted);
+    }
+    .menu-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+    .ask-chip {
+      border: 0;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .ask-chip:hover { background: #F2D8C7; }
+
+    /* Hours + Map */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+    .hours-list {
+      list-style: none;
+      margin: 14px 0 18px;
+      padding: 0;
+    }
+    .hours-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--surface-soft);
+      font-size: 14.5px;
+    }
+    .hours-list li:last-child { border-bottom: 0; }
+    .address-box {
+      background: var(--surface-soft);
+      border-radius: var(--radius-sm);
+      padding: 13px 15px;
+      font-size: 13.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .map-frame {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #EFE9E0;
+      min-height: 295px;
+    }
+    .map-controls {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 3;
+    }
+    .map-ctrl-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .map-legend {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 13px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    /* AI Booking Workspace */
+    .booking-grid {
+      display: grid;
+      grid-template-columns: 1.18fr 0.82fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .chat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 540px;
+    }
+    .chat-header {
+      padding: 15px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #FFFDF9;
+    }
+    .chat-agent {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ai-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #B45F2B, #D68A55);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 16px 18px;
+      overflow-y: auto;
+      max-height: 375px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #FCF9F4;
+    }
+    .msg {
+      max-width: 88%;
+      padding: 11px 14px;
+      border-radius: 15px;
+      font-size: 14px;
+      line-height: 1.48;
+      white-space: pre-line;
+    }
+    .msg-ai {
+      align-self: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+    .msg-user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg-card {
+      margin-top: 8px;
+      background: var(--sage-soft);
+      border: 1px solid #B7DEC8;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #1B4B34;
+    }
+    .msg-card.warn {
+      background: #FFF2E8;
+      border-color: #ECC5A8;
+      color: #7D3B16;
+    }
+    .quick-prompts {
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+    .prompt-chip {
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--ink);
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .prompt-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .chat-controls {
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-opts {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--ink-muted);
+    }
+    .chat-opts label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .chat-opts select {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 8px;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 12.5px;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .input-row input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 11px 16px;
+      font-size: 14px;
+      outline: none;
+      background: var(--bg);
+    }
+    .input-row input:focus { border-color: var(--accent); background: #fff; }
+
+    /* Owner Sidecar / Behind-the-scenes panel */
+    .owner-panel {
+      background: #1E1916;
+      color: #F4EDE4;
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--shadow);
+    }
+    .owner-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .owner-head h3 { margin: 0; font-size: 16px; }
+    .pill-dark {
+      background: rgba(245, 184, 142, 0.16);
+      color: #F5B88E;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 999px;
+    }
+    .tg-preview {
+      background: #2A231F;
+      border: 1px solid #3D332D;
+      border-radius: 14px;
+      padding: 13px;
+      font-size: 13px;
+      line-height: 1.48;
+    }
+    .tg-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .tg-btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tg-ok { background: #2D7A56; color: #fff; }
+    .tg-cancel { background: #463A34; color: #EAE0D5; }
+    .bookings-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .booking-row {
+      background: #28211D;
+      border: 1px solid #3A302B;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 12.5px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .muted-dark { color: #B9ADA3; font-size: 12.5px; }
+
+    /* Floating mobile quick-jump button */
+    .fab-book {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 45;
+      box-shadow: 0 12px 26px rgba(180, 95, 43, 0.35);
+      display: none;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0 40px;
+      margin-top: 24px;
+      color: var(--ink-muted);
+      font-size: 13.5px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid, .info-grid, .booking-grid { grid-template-columns: 1fr; }
+      .menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      nav a.hide-xs { display: none; }
+      .menu-grid { grid-template-columns: 1fr; }
+      .hero { padding: 28px 0 20px; }
+      .chat-box { min-height: 490px; }
+      .fab-book { display: inline-flex; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-bar">
+    <strong>Інтерактивний Demo MVP для кавʼярні</strong> · Перевірка меню, графіка, карти та AI-бронювання (заявки симулюються локально)
+  </div>
+
+  <header>
+    <div class="container nav-wrap">
+      <a href="#top" class="brand">
+        <span class="brand-mark">Р</span>
+        <span>РАНОК · Кавʼярня</span>
+      </a>
+      <nav>
+        <a href="#menu" class="hide-xs">Меню</a>
+        <a href="#hours-map" class="hide-xs">Графік і карта</a>
+        <a href="#ai-booking" class="btn btn-primary btn-sm">Забронювати столик</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top" class="container">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div id="liveStatusPill" class="status-pill">
+            <span class="dot"></span>
+            <span id="liveStatusText">Перевіряємо графік...</span>
+          </div>
+          <h1>Спешелті кава та сніданки в центрі Києва — без дзвінків для броні</h1>
+          <p class="lead">
+            Затишна кавʼярня на 6 столиків біля Золотих Воріт. Оберіть дату, час, кількість гостей та тривалість візиту (1,5–3 год) у нашому AI-асистенті — і столик ваш за 20 секунд.
+          </p>
+          <div class="hero-actions">
+            <a href="#ai-booking" class="btn btn-primary" onclick="focusChatInput()">Відкрити AI-бронювання</a>
+            <a href="#menu" class="btn btn-outline">Переглянути меню</a>
+          </div>
+          <div class="hero-meta">
+            <span><strong>1,5–3 год</strong> · тривалість броні</span>
+            <span><strong>За 1 год</strong> · авто-нагадування гостю</span>
+            <span><strong>6 столиків</strong> · жива перевірка слотів</span>
+          </div>
+        </div>
+
+        <div class="hero-card" aria-label="Приклад роботи AI-чату">
+          <div class="hero-card-head">
+            <span>AI-асистент бронювання · демо-сценарій</span>
+            <span>~5 сек</span>
+          </div>
+          <div class="bubble-preview">
+            <div class="bp-user">На завтра о 18:30, нас троє на 2 години, бажано біля вікна</div>
+            <div class="bp-ai">
+              Столик №2 (біля вікна) вільний завтра на <strong>18:30–20:30</strong> для 3 гостей! Підтверджую бронь і надішлю нагадування о 17:30.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU -->
+    <section id="menu">
+      <div class="sec-head">
+        <div>
+          <h2>Меню закладу</h2>
+          <p class="sec-sub">Свіже обсмаження щотижня · рослинне молоко без доплати</p>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Категорії меню">
+          <button class="tab-btn active" data-cat="classic" onclick="switchMenu('classic', this)">Кава та альтернатива</button>
+          <button class="tab-btn" data-cat="signature" onclick="switchMenu('signature', this)">Авторські напої</button>
+          <button class="tab-btn" data-cat="food" onclick="switchMenu('food', this)">Випічка та сніданки</button>
+        </div>
+      </div>
+      <div id="menuGrid" class="menu-grid"></div>
+    </section>
+
+    <!-- HOURS & MAP -->
+    <section id="hours-map">
+      <div class="sec-head">
+        <div>
+          <h2>Години роботи та розташування</h2>
+          <p class="sec-sub">4 хвилини пішки від станції метро «Золоті ворота»</p>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="card">
+          <h3 style="margin:0 0 6px; font-size:18px;">Графік кавʼярні</h3>
+          <p class="sec-sub" style="margin-bottom:10px;">Останнє бронювання приймаємо за 1,5 години до закриття</p>
+          <ul class="hours-list">
+            <li><span>Понеділок – Пʼятниця</span><strong>08:00 – 21:00</strong></li>
+            <li><span>Субота – Неділя</span><strong>09:00 – 22:00</strong></li>
+            <li><span>Сніданки та кухня</span><strong>весь день до 20:30</strong></li>
+          </ul>
+          <div class="address-box">
+            <div><strong>Адреса (приклад):</strong> вул. Рейтарська, 19Б, Київ</div>
+            <div style="color:var(--ink-muted);">У бойовій версії сюди підключається ваш точний пін Google Maps / OpenStreetMap.</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+              <button class="btn btn-outline btn-sm" onclick="copyAddress()">Скопіювати адресу</button>
+              <a class="btn btn-primary btn-sm" href="https://maps.google.com/?q=50.4519,30.5112" target="_blank" rel="noopener noreferrer">Відкрити в Google Maps</a>
+            </div>
+            <span id="copyFeedback" style="font-size:12px; color:var(--sage); display:none;">Адресу скопійовано</span>
+          </div>
+        </div>
+
+        <div class="card" style="padding:14px;">
+          <div class="map-frame">
+            <div class="map-controls">
+              <button class="map-ctrl-btn" title="Наблизити" onclick="zoomMap(0.15)">+</button>
+              <button class="map-ctrl-btn" title="Віддалити" onclick="zoomMap(-0.15)">−</button>
+            </div>
+            <svg id="kyivMapSvg" viewBox="0 0 600 320" width="100%" height="295" style="display:block; transition:transform 0.2s ease;">
+              <rect width="600" height="320" fill="#EFE9E0"/>
+              <!-- City blocks -->
+              <rect x="30" y="25" width="140" height="90" rx="10" fill="#E6DDD1"/>
+              <rect x="200" y="25" width="175" height="90" rx="10" fill="#E6DDD1"/>
+              <rect x="405" y="25" width="165" height="90" rx="10" fill="#E6DDD1"/>
+              <rect x="30" y="145" width="140" height="130" rx="10" fill="#E6DDD1"/>
+              <rect x="200" y="145" width="175" height="130" rx="10" fill="#E6DDD1"/>
+              <rect x="405" y="145" width="165" height="130" rx="10" fill="#E6DDD1"/>
+              <!-- Green park -->
+              <rect x="215" y="160" width="90" height="58" rx="14" fill="#D5E4D3"/>
+              <!-- Streets -->
+              <path d="M0 130 H600 M0 290 H600 M185 0 V320 M390 0 V320" stroke="#FAF7F2" stroke-width="14"/>
+              <path d="M0 130 H600 M185 0 V320 M390 0 V320" stroke="#DDD2C4" stroke-width="1.5" stroke-dasharray="5 5"/>
+              <!-- Street Labels -->
+              <text x="235" y="134" font-size="11" fill="#7D6F65" font-weight="600">вул. Рейтарська</text>
+              <text x="193" y="80" font-size="11" fill="#7D6F65" transform="rotate(-90 193 80)">вул. Золотоворітська</text>
+              <!-- Metro Pin -->
+              <g transform="translate(390, 232)">
+                <circle r="13" fill="#2A6F4E"/>
+                <text text-anchor="middle" dy="4" font-size="11" fill="#fff" font-weight="700">М</text>
+                <text x="18" y="4" font-size="11.5" fill="#221B17" font-weight="600">Золоті ворота (4 хв)</text>
+              </g>
+              <!-- Route dotted -->
+              <path d="M390 218 L390 130 L295 130" fill="none" stroke="#B45F2B" stroke-width="2.5" stroke-dasharray="6 5"/>
+              <!-- Cafe Pin -->
+              <g transform="translate(295, 128)" style="cursor:pointer" onclick="focusChatInput()">
+                <circle r="22" fill="#B45F2B" opacity="0.18"/>
+                <circle r="13" fill="#B45F2B"/>
+                <text text-anchor="middle" dy="4" font-size="12" fill="#fff" font-weight="700">Р</text>
+                <rect x="-72" y="-44" width="144" height="24" rx="8" fill="#221B17"/>
+                <text x="0" y="-28" text-anchor="middle" font-size="11" fill="#FAF7F2" font-weight="600">Кавʼярня «РАНОК» · 19Б</text>
+              </g>
+            </svg>
+            <div class="map-legend">
+              <span><strong>Орієнтир:</strong> між Золотими Воротами та Пейзажною алеєю</span>
+              <span style="color:var(--sage); font-weight:600;">Велопарковка біля входу</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI BOOKING -->
+    <section id="ai-booking">
+      <div class="sec-head">
+        <div>
+          <h2>Бронювання столика через AI-чат</h2>
+          <p class="sec-sub">Напишіть вільною українською — асистент перевірить вільні столики на обрані 1,5–3 години, підтвердить бронь та поставить нагадування</p>
+        </div>
+      </div>
+
+      <div class="booking-grid">
+        <!-- Interactive Chat -->
+        <div class="chat-box">
+          <div class="chat-header">
+            <div class="chat-agent">
+              <div class="ai-badge">AI</div>
+              <div>
+                <div style="font-weight:700; font-size:14.5px;">Асистент кавʼярні «РАНОК»</div>
+                <div style="font-size:12px; color:var(--sage);">Онлайн · перевірка слотів (1,5–3 год)</div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="resetChat()">Новий діалог</button>
+          </div>
+
+          <div id="chatMessages" class="chat-messages"></div>
+
+          <div class="quick-prompts" aria-label="Швидкі приклади запитів">
+            <button class="prompt-chip" onclick="sendPreset('На завтра о 18:30, 2 гостей на 2 години, біля вікна')">Завтра 18:30 · 2 гості · 2 год</button>
+            <button class="prompt-chip" onclick="sendPreset('Сьогодні на 19:00, нас четверо на 3 години')">Сьогодні 19:00 · 4 гості · 3 год</button>
+            <button class="prompt-chip" onclick="sendPreset('На суботу о 14:00, 3 людини на 1.5 години')">Субота 14:00 · 3 гості · 1,5 год</button>
+            <button class="prompt-chip" onclick="sendPreset('Чи є безлактозне молоко та десерти?')">Меню / молоко?</button>
+          </div>
+
+          <div class="chat-controls">
+            <div class="chat-opts">
+              <label>
+                Тривалість:
+                <select id="durationSelect" onchange="updateDraftDuration(this.value)">
+                  <option value="1.5">1,5 год</option>
+                  <option value="2" selected>2 год</option>
+                  <option value="2.5">2,5 год</option>
+                  <option value="3">3 год</option>
+                </select>
+              </label>
+              <label>
+                <input id="reminderToggle" type="checkbox" checked />
+                Нагадати гостю за 1 год до візиту
+              </label>
+            </div>
+            <form class="input-row" onsubmit="handleChatSubmit(event)">
+              <input id="chatInput" type="text" placeholder="Наприклад: Завтра о 18:30, нас троє на 2 години..." autocomplete="off" />
+              <button type="submit" class="btn btn-primary">Надіслати</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Owner Preview Panel -->
+        <aside class="owner-panel" aria-label="Сповіщення для власника">
+          <div class="owner-head">
+            <h3>Куди приходить бронь (для власника)</h3>
+            <span class="pill-dark">Telegram + База</span>
+          </div>
+          <p class="muted-dark" style="margin:0;">
+            Щойно гість підтверджує бронь у чаті, бекенд записує слот (з урахуванням тривалості 1,5–3 год), надсилає картку адміністратору в Telegram і планує нагадування за 1 год.
+          </p>
+
+          <div class="tg-preview" id="tgPreviewCard">
+            <div style="color:#F5B88E; font-weight:700; margin-bottom:6px;">Telegram-сповіщення адміну (превʼю)</div>
+            <div id="tgPreviewBody" style="color:#E7DDD2;">
+              Оберіть дату, час і кількість гостей у чаті ліворуч — тут зʼявиться миттєве сповіщення з кнопками підтвердження.
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:8px; display:flex; justify-content:space-between;">
+              <span>Активні броні на слоти (демо-журнал)</span>
+              <span id="bookingsCount" style="color:#F5B88E;">2 зайнято</span>
+            </div>
+            <div id="bookingsFeed" class="bookings-feed"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <footer>
+      <span>Кавʼярня «РАНОК» · Demo MVP сайту з AI-бронюванням столиків</span>
+      <span>Адаптивний інтерфейс · Київський час роботи та 1,5–3 год слоти</span>
+    </footer>
+  </main>
+
+  <a href="#ai-booking" class="btn btn-primary fab-book" onclick="focusChatInput()">AI-бронь</a>
+
+  <script>
+    const MENU_ITEMS = {
+      classic: [
+        { name: "Еспресо / Допіо", price: "65 / 80 грн", desc: "Ефіопія Іргачіффе, ноти бергамоту та чорного чаю", tag: "30 / 60 мл" },
+        { name: "Флет Вайт", price: "95 грн", desc: "Подвійний еспресо та шовкова мікропіна молока", tag: "180 мл · безлактозне +" },
+        { name: "Фільтр-кава (Batch Brew)", price: "80 грн", desc: "Свіжозаварена альтернатива дня, легке ягідне тіло", tag: "250 мл" },
+        { name: "V60 Пуровер", price: "115 грн", desc: "Ручне заварювання під запит: Кенія або Колумбія", tag: "250 мл" },
+        { name: "Капучино класичне", price: "85 грн", desc: "На фермерському або вівсяному / кокосовому молоці", tag: "220 мл · безлактозне +" },
+        { name: "Матча Лате (Уджі)", price: "125 грн", desc: "Церемоніальний зелений чай на мигдалевому молоці", tag: "250 мл · веган" }
+      ],
+      signature: [
+        { name: "Еспресо-тонік Цитрон", price: "120 грн", desc: "Допіо, сухий тонік, цедра грейпфрута та розмарин", tag: "280 мл" },
+        { name: "Пряний карамельний раф", price: "130 грн", desc: "Домашня солона карамель, вершки та кардамон", tag: "250 мл" },
+        { name: "Вишневий колд-брю", price: "125 грн", desc: "16-годинна холодна екстракція з кислуватою вишнею", tag: "260 мл" }
+      ],
+      food: [
+        { name: "Баскський чизкейк", price: "145 грн", desc: "Ніжна кремова серединка та карамелізована скоринка", tag: "160 г" },
+        { name: "Мигдалевий круасан", price: "110 грн", desc: "Подвійне випікання з франжипаном і мигдалем", tag: "130 г" },
+        { name: "Сирники з вишневим конфі", price: "175 грн", desc: "Фермерський сир, сметана та теплий соус із вишні", tag: "220 г" }
+      ]
+    };
+
+    const TABLES = [
+      { id: 1, name: "Столик №1 (біля вікна)", capacity: 2 },
+      { id: 2, name: "Столик №2 (біля вікна)", capacity: 2 },
+      { id: 3, name: "Столик №3 (центр залу)", capacity: 4 },
+      { id: 4, name: "Столик №4 (тихий куток)", capacity: 4 },
+      { id: 5, name: "Столик №5 (диванна зона)", capacity: 6 },
+      { id: 6, name: "Столик №6 (біля бару)", capacity: 2 }
+    ];
+
+    const bookings = [
+      { id: "B-101", dayLabel: "Сьогодні", time: "19:00", startMin: 1140, duration: 2, guests: 2, tableId: 1, tableName: "Столик №1 (біля вікна)", reminder: true, status: "Підтверджено" },
+      { id: "B-102", dayLabel: "Завтра", time: "18:00", startMin: 1080, duration: 2, guests: 4, tableId: 3, tableName: "Столик №3 (центр залу)", reminder: true, status: "Підтверджено" }
+    ];
+
+    let draft = {
+      dayLabel: null,
+      time: null,
+      startMin: null,
+      guests: null,
+      duration: 2,
+      preference: null,
+      pendingConfirm: null
+    };
+
+    let mapScale = 1;
+
+    function updateOpenStatus() {
+      const now = new Date();
+      const day = now.getDay();
+      const isWeekend = (day === 0 || day === 6);
+      const openHour = isWeekend ? 9 : 8;
+      const closeHour = isWeekend ? 22 : 21;
+      const curMin = now.getHours() * 60 + now.getMinutes();
+      const isOpen = curMin >= openHour * 60 && curMin < closeHour * 60;
+      const pill = document.getElementById("liveStatusPill");
+      const text = document.getElementById("liveStatusText");
+      if (isOpen) {
+        pill.classList.remove("closed");
+        text.textContent = `Зараз відчинено · сьогодні до ${closeHour}:00`;
+      } else {
+        pill.classList.add("closed");
+        text.textContent = `Зараз зачинено · відкриття о 0${openHour}:00 (можна бронювати наперед)`;
+      }
+    }
+
+    function switchMenu(cat, btn) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      const grid = document.getElementById("menuGrid");
+      grid.innerHTML = MENU_ITEMS[cat].map(item => `
+        <article class="menu-card">
+          <div>
+            <div class="menu-top">
+              <h3 class="menu-title">${item.name}</h3>
+              <span class="menu-price">${item.price}</span>
+            </div>
+            <p class="menu-desc">${item.desc}</p>
+          </div>
+          <div class="menu-foot">
+            <span>${item.tag}</span>
+            <button class="ask-chip" onclick="askAboutItem('${item.name.replace(/'/g, "\\'")}')">Спитати AI</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function askAboutItem(name) {
+      document.getElementById("ai-booking").scrollIntoView({ behavior: "smooth" });
+      sendPreset(`Чи є зараз ${name} і чи можна забронювати столик?`);
+    }
+
+    function copyAddress() {
+      const addr = "вул. Рейтарська, 19Б, Київ";
+      if (navigator.clipboard) navigator.clipboard.writeText(addr).catch(() => {});
+      const fb = document.getElementById("copyFeedback");
+      fb.style.display = "inline";
+      setTimeout(() => { fb.style.display = "none"; }, 2200);
+    }
+
+    function zoomMap(delta) {
+      mapScale = Math.min(1.45, Math.max(1, +(mapScale + delta).toFixed(2)));
+      document.getElementById("kyivMapSvg").style.transform = `scale(${mapScale})`;
+    }
+
+    function focusChatInput() {
+      setTimeout(() => document.getElementById("chatInput").focus(), 200);
+    }
+
+    function updateDraftDuration(val) {
+      draft.duration = parseFloat(val);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[s]));
+    }
+
+    function addMsg(sender, html, cardHtml = "") {
+      const box = document.getElementById("chatMessages");
+      const div = document.createElement("div");
+      div.className = `msg ${sender === "user" ? "msg-user" : "msg-ai"}`;
+      div.innerHTML = (sender === "user" ? escapeHtml(html) : html) + cardHtml;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function renderBookingsFeed() {
+      const feed = document.getElementById("bookingsFeed");
+      document.getElementById("bookingsCount").textContent = `${bookings.length} активні`;
+      feed.innerHTML = bookings.slice().reverse().map(b => `
+        <div class="booking-row">
+          <div>
+            <strong>${b.dayLabel}, ${b.time}</strong> (${b.duration} год)<br/>
+            <span class="muted-dark">${b.guests} гості · ${b.tableName}</span>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:#85D6AB; font-weight:600;">${b.status}</span><br/>
+            <span class="muted-dark">${b.reminder ? "Нагадування -1 год" : "Без нагадування"}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function parseUkrainianBooking(text) {
+      const lower = text.toLowerCase();
+      const parsed = {};
+
+      // Day
+      if (/післязавтра/.test(lower)) parsed.dayLabel = "Післязавтра";
+      else if (/завтра/.test(lower)) parsed.dayLabel = "Завтра";
+      else if (/сьогодні/.test(lower)) parsed.dayLabel = "Сьогодні";
+      else if (/субот/.test(lower)) parsed.dayLabel = "Субота";
+      else if (/неділ/.test(lower)) parsed.dayLabel = "Неділя";
+      else if (/п['’]?ятниц/.test(lower)) parsed.dayLabel = "Пʼятниця";
+      else {
+        const dateMatch = lower.match(/(\d{1,2})[./](\d{1,2})/);
+        if (dateMatch) parsed.dayLabel = `${dateMatch[1].padStart(2,"0")}.${dateMatch[2].padStart(2,"0")}`;
+      }
+
+      // Time: "18:30", "о 19", "на 14:00", "14.00"
+      const timeColon = lower.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
+      if (timeColon) {
+        const hh = parseInt(timeColon[1], 10);
+        const mm = parseInt(timeColon[2], 10);
+        parsed.time = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+        parsed.startMin = hh * 60 + mm;
+      } else {
+        const timeWord = lower.match(/(?:о|на|в)\s+([01]?\d|2[0-3])\b(?!\s*(?:гост|люд|персон|чол|год))/);
+        if (timeWord) {
+          const hh = parseInt(timeWord[1], 10);
+          parsed.time = `${String(hh).padStart(2, "0")}:00`;
+          parsed.startMin = hh * 60;
+        }
+      }
+
+      // Guests
+      if (/\b(двоє|двох|на двох)\b/.test(lower)) parsed.guests = 2;
+      else if (/\b(троє|трьох)\b/.test(lower)) parsed.guests = 3;
+      else if (/\b(четверо|чотирьох)\b/.test(lower)) parsed.guests = 4;
+      else if (/\b(п['’]?ятеро)\b/.test(lower)) parsed.guests = 5;
+      else {
+        const gMatch = lower.match(/(\d+)\s*(?:гост|люд|персон|осіб|чол|місц)/) || lower.match(/\b(?:нас|для)\s+(\d+)\b/);
+        if (gMatch) parsed.guests = Math.min(8, Math.max(1, parseInt(gMatch[1], 10)));
+      }
+
+      // Duration 1.5 - 3h
+      const dMatch = lower.match(/(1[.,]5|2[.,]5|[123])\s*год/);
+      if (dMatch) {
+        const dVal = parseFloat(dMatch[1].replace(",", "."));
+        if (dVal >= 1.5 && dVal <= 3) {
+          parsed.duration = dVal;
+          document.getElementById("durationSelect").value = String(dVal);
+        }
+      }
+
+      // Preference
+      if (/вікн/.test(lower)) parsed.preference = "біля вікна";
+      else if (/тих|кут/.test(lower)) parsed.preference = "тихий куток";
+      else if (/диван/.test(lower)) parsed.preference = "диванна зона";
+
+      return parsed;
+    }
+
+    function findFreeTable(dayLabel, startMin, duration, guests, preference) {
+      const endMin = startMin + duration * 60;
+      const isWeekend = /субот|неділ/.test(dayLabel.toLowerCase());
+      const openMin = (isWeekend ? 9 : 8) * 60;
+      const closeMin = (isWeekend ? 22 : 21) * 60;
+
+      if (startMin < openMin || endMin > closeMin) {
+        return {
+          error: `У ${dayLabel.toLowerCase()} ми працюємо ${isWeekend ? "09:00–22:00" : "08:00–21:00"}. Бронь на ${duration} год з ${minutesToTime(startMin)} виходить за межі графіка. Підказати найближчий слот, наприклад <strong>18:00</strong>?`
+        };
+      }
+
+      const candidates = TABLES
+        .filter(t => t.capacity >= guests)
+        .sort((a, b) => {
+          const prefA = preference && a.name.toLowerCase().includes(preference.split(" ")[0]) ? -10 : 0;
+          const prefB = preference && b.name.toLowerCase().includes(preference.split(" ")[0]) ? -10 : 0;
+          return (a.capacity + prefA) - (b.capacity + prefB);
+        });
+
+      for (const table of candidates) {
+        const conflict = bookings.some(b => {
+          if (b.tableId !== table.id || b.dayLabel !== dayLabel || b.status === "Скасовано") return false;
+          const bEnd = b.startMin + b.duration * 60;
+          return startMin < bEnd && endMin > b.startMin;
+        });
+        if (!conflict) return { table, endMin };
+      }
+
+      return { error: `На жаль, на ${dayLabel.toLowerCase()} о ${minutesToTime(startMin)} (${duration} год) для ${guests} гостей усі відповідні столики зайняті. Можу запропонувати <strong>16:30</strong> або <strong>19:30</strong> — який час підійде?` };
+    }
+
+    function minutesToTime(mins) {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+
+    function finalizeBooking(bookingObj) {
+      bookings.push(bookingObj);
+      renderBookingsFeed();
+
+      const remindTime = minutesToTime(bookingObj.startMin - 60);
+      const reminderNote = bookingObj.reminder
+        ? `Нагадування гостю заплановано на <strong>${bookingObj.dayLabel.toLowerCase()} о ${remindTime}</strong> (за 1 год до візиту).`
+        : "Без автоматичного нагадування.";
+
+      document.getElementById("tgPreviewBody").innerHTML = `
+        <strong>Нова бронь #${bookingObj.id}</strong><br/>
+        Дата і час: <strong>${bookingObj.dayLabel}, ${bookingObj.time}–${minutesToTime(bookingObj.startMin + bookingObj.duration * 60)}</strong> (${bookingObj.duration} год)<br/>
+        Гостей: <strong>${bookingObj.guests}</strong> · ${bookingObj.tableName}<br/>
+        Нагадування (-1 год): <strong>${bookingObj.reminder ? `${remindTime}` : "вимкнено"}</strong>
+        <div class="tg-actions">
+          <button class="tg-btn tg-ok" onclick="updateBookingStatus('${bookingObj.id}', 'Підтверджено адміном')">Підтвердити</button>
+          <button class="tg-btn tg-cancel" onclick="updateBookingStatus('${bookingObj.id}', 'Скасовано')">Скасувати</button>
+        </div>
+      `;
+
+      addMsg(
+        "ai",
+        `Готово! Забронював для вас <strong>${bookingObj.tableName}</strong>.`,
+        `<div class="msg-card">
+          <strong>Номер броні: #${bookingObj.id}</strong><br/>
+          Коли: ${bookingObj.dayLabel}, ${bookingObj.time}–${minutesToTime(bookingObj.startMin + bookingObj.duration * 60)} (${bookingObj.duration} год)<br/>
+          Гостей: ${bookingObj.guests}<br/>
+          ${reminderNote}
+        </div>`
+      );
+
+      draft = { dayLabel: null, time: null, startMin: null, guests: null, duration: parseFloat(document.getElementById("durationSelect").value), preference: null, pendingConfirm: null };
+    }
+
+    function updateBookingStatus(id, newStatus) {
+      const target = bookings.find(b => b.id === id);
+      if (!target) return;
+      target.status = newStatus;
+      renderBookingsFeed();
+      addMsg("ai", `Статус броні <strong>#${id}</strong> оновлено адміністратором: <strong>${newStatus}</strong>.`);
+    }
+
+    function processMessage(text) {
+      const lower = text.toLowerCase().trim();
+
+      // FAQ responses
+      if (/в наявності|чи є зараз/.test(lower) && !/завтра|сьогодні|субот|неділ|\d+[:.]\d+/.test(lower)) {
+        addMsg("ai", "Так, ця позиція сьогодні в наявності на барі! До напоїв завжди можна обрати вівсяне, мигдалеве чи кокосове молоко без доплати.\n\nЯкщо хочете одразу забронювати столик — напишіть день, час і кількість гостей (наприклад: <em>«Завтра о 18:30, 2 гості на 2 години»</em>).");
+        return;
+      }
+
+      if (/молоко|веган|десерт|меню|цін|лактоз|чізкейк|чизкейк/.test(lower) && !/завтра|сьогодні|субот|неділ|\d+[:.]\d+/.test(lower)) {
+        addMsg("ai", "У нас є вівсяне, мигдалеве та кокосове молоко без доплати, а також баскський чизкейк (145 грн), сирники (175 грн) та мигдалевий круасан (110 грн).\n\nЯкщо хочете забронювати столик — просто напишіть день, час і кількість гостей (наприклад: <em>«Завтра о 18:30, 2 гості на 2 години»</em>).");
+        return;
+      }
+
+      if (/графік|працю|години|адрес|де ви|метро/.test(lower) && !/завтра|сьогодні|субот|неділ|\d+[:.]\d+/.test(lower)) {
+        addMsg("ai", "Ми на вул. Рейтарській, 19Б (4 хв від м. Золоті ворота). Працюємо Пн–Пт 08:00–21:00, Сб–Нд 09:00–22:00. На який день і час підібрати столик?");
+        return;
+      }
+
+      // Confirmation if pending
+      if (draft.pendingConfirm && /^(так|ок|добре|підтвердж|бронюй|давай|\+)$/.test(lower)) {
+        finalizeBooking(draft.pendingConfirm);
+        return;
+      }
+
+      const p = parseUkrainianBooking(text);
+      if (p.dayLabel) draft.dayLabel = p.dayLabel;
+      if (p.time) { draft.time = p.time; draft.startMin = p.startMin; }
+      if (p.guests) draft.guests = p.guests;
+      if (p.duration) draft.duration = p.duration;
+      if (p.preference) draft.preference = p.preference;
+
+      const missing = [];
+      if (!draft.dayLabel) missing.push("день (наприклад, сьогодні або завтра)");
+      if (!draft.time) missing.push("час візиту (наприклад, 18:30)");
+      if (!draft.guests) missing.push("кількість гостей (1–6)");
+
+      if (missing.length > 0) {
+        const known = [];
+        if (draft.dayLabel) known.push(`день: ${draft.dayLabel}`);
+        if (draft.time) known.push(`час: ${draft.time}`);
+        if (draft.guests) known.push(`гостей: ${draft.guests}`);
+        const prefix = known.length ? `Зафіксував (${known.join(", ")}). ` : "";
+        addMsg("ai", `${prefix}Підкажіть ще <strong>${missing.join(" та ")}</strong> — і я одразу перевірю вільні столики на ${draft.duration} год.`);
+        return;
+      }
+
+      const check = findFreeTable(draft.dayLabel, draft.startMin, draft.duration, draft.guests, draft.preference);
+      if (check.error) {
+        addMsg("ai", check.error, `<div class="msg-card warn">Перевірено анти-овербукінгом на інтервал ${draft.duration} год.</div>`);
+        draft.time = null;
+        draft.startMin = null;
+        return;
+      }
+
+      const reminderOn = document.getElementById("reminderToggle").checked;
+      const newBooking = {
+        id: "B-" + Math.floor(103 + Math.random() * 890),
+        dayLabel: draft.dayLabel,
+        time: draft.time,
+        startMin: draft.startMin,
+        duration: draft.duration,
+        guests: draft.guests,
+        tableId: check.table.id,
+        tableName: check.table.name,
+        reminder: reminderOn,
+        status: "Очікує підтвердження"
+      };
+
+      finalizeBooking(newBooking);
+    }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById("chatInput");
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = "";
+      addMsg("user", val);
+      setTimeout(() => processMessage(val), 260);
+    }
+
+    function sendPreset(text) {
+      addMsg("user", text);
+      setTimeout(() => processMessage(text), 220);
+    }
+
+    function resetChat() {
+      draft = { dayLabel: null, time: null, startMin: null, guests: null, duration: parseFloat(document.getElementById("durationSelect").value), preference: null, pendingConfirm: null };
+      document.getElementById("chatMessages").innerHTML = "";
+      addMsg("ai", "Вітаю у кавʼярні «РАНОК»! Напишіть, на коли, котру годину і скільки гостей потрібен столик — я перевірю вільні місця (стандартна бронь 1,5–3 год) і за потреби надішлю нагадування за 1 годину.");
+    }
+
+    // Init
+    updateOpenStatus();
+    switchMenu("classic", document.querySelector(".tab-btn"));
+    renderBookingsFeed();
+    resetChat();
+  </script>
+</body>
+</html>
