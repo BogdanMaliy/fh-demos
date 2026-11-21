@@ -652,7 +652,11 @@
       .menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 600px) {
+      .nav-wrap { height: 56px; gap: 8px; }
+      .brand { font-size: 14.5px; gap: 8px; white-space: nowrap; }
+      .brand-mark { width: 30px; height: 30px; font-size: 14px; border-radius: 8px; }
       nav a.hide-xs { display: none; }
+      header .btn-sm { padding: 7px 12px; font-size: 12px; white-space: nowrap; }
       .menu-grid { grid-template-columns: 1fr; }
       .hero { padding: 28px 0 20px; }
       .chat-box { min-height: 490px; }
