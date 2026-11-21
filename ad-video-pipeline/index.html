@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>AI Video Ad Pipeline (9:16) — Приклади автоматизованої відеореклами</title>
+  <style>
+    :root {
+      --bg: #0E1117;
+      --surface: #161B22;
+      --surface-2: #1E2530;
+      --ink: #F0F6FC;
+      --muted: #9CA7B8;
+      --accent: #3B82F6;
+      --accent-soft: rgba(59, 130, 246, 0.14);
+      --green: #22C55E;
+      --green-soft: rgba(34, 197, 94, 0.14);
+      --border: #2A3241;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 18px;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(14, 17, 23, 0.9);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 60px;
+      padding: 8px 0;
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 15.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: #6EE7B7;
+      white-space: nowrap;
+    }
+    .hero {
+      padding: 32px 0 22px;
+    }
+    h1 {
+      font-size: clamp(24px, 3.6vw, 36px);
+      line-height: 1.18;
+      margin: 0 0 10px;
+      letter-spacing: -0.02em;
+    }
+    .lead {
+      color: var(--muted);
+      max-width: 780px;
+      margin: 0 0 18px;
+      font-size: 15.5px;
+    }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12.5px;
+      color: #D2DAE6;
+    }
+    .pill strong { color: #93C5FD; }
+
+    section { padding: 24px 0; }
+    h2 {
+      font-size: clamp(20px, 2.5vw, 25px);
+      margin: 0 0 6px;
+    }
+    .sec-sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 18px;
+    }
+
+    /* Two video showcase cards */
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .vcard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .vcard-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .vcard h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+    .vmeta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+    .cost-tag {
+      background: var(--accent-soft);
+      color: #93C5FD;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .phone-frame {
+      width: 100%;
+      max-width: 310px;
+      margin: 0 auto;
+      aspect-ratio: 9 / 16;
+      background: #000;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid #2F3848;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+    }
+    .phone-frame video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 8px 13px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .spec-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .spec-list li { margin-bottom: 4px; }
+
+    /* Anchors & Pipeline */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .anchors-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .anchor-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .anchor-box img {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      object-fit: cover;
+      display: block;
+    }
+    .anchor-box span {
+      display: block;
+      padding: 7px 8px;
+    }
+
+    /* Cost table & simulator */
+    .tier-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .cost-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cost-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-2);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13.5px;
+    }
+    .cost-total {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--green-soft);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 15px;
+      color: #86EFAC;
+    }
+    .prompt-box {
+      background: #0B0E14;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      color: #CBD5E1;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      margin-top: 10px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 0 36px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    @media (max-width: 860px) {
+      .videos-grid, .pipeline-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .hdr { flex-wrap: wrap; }
+      .brand { font-size: 14px; }
+      .phone-frame { max-width: 280px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container hdr">
+      <div class="brand">AI Ad Video Factory · 9:16 Demo</div>
+      <div class="badge">Фактична собівартість &lt; $2.50 / MP4</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Автоматизована генерація та монтаж 9:16 відеореклами за референсом</h1>
+      <p class="lead">
+        Демонстрація реального пайплайна для фітнес-застосунків: <strong>розбір референсу → 2 кадри-маркери персонажа → живі відеосцени 9:16 (Gemini Omni 1.2 Flash) → монтаж FFmpeg із safe-zone титрами, озвучкою та точковими правками</strong>.
+      </p>
+      <div class="pill-row">
+        <span class="pill">Формат: <strong>MP4 9:16 (720p / 1080p)</strong></span>
+        <span class="pill">Відеомодель: <strong>Gemini Omni 1.2 Flash</strong></span>
+        <span class="pill">Монтаж + титри: <strong>Python + FFmpeg + TTS</strong></span>
+        <span class="pill">Точкова заміна заголовка: <strong>$0.00 (2 сек)</strong></span>
+      </div>
+    </section>
+
+    <section id="examples">
+      <h2>2 приклади автоматично зібраної відеореклами</h2>
+      <p class="sec-sub">Обидва ролики містять реальну генерацію руху людей (не слайд-шоу) + автоматичну англійську озвучку та компактні safe-zone титри.</p>
+
+      <div class="videos-grid">
+        <!-- Example 1 -->
+        <article class="vcard">
+          <div class="vcard-head">
+            <div>
+              <h3>Приклад 1 · Tai Chi App (США, 65+)</h3>
+              <div class="vmeta">14.8 сек · 2 модульні сцени + FFmpeg монтаж</div>
+            </div>
+            <span class="cost-tag">~$1.23 / MP4</span>
+          </div>
+
+          <div class="phone-frame">
+            <video id="taiChiVideo" controls playsinline preload="metadata" poster="media/tai_chi_start.jpg">
+              <source id="taiChiSource" src="media/ad_example_1_taichi_15s.mp4" type="video/mp4" />
+            </video>
+          </div>
+
+          <div class="controls-row" aria-label="Точкова правка заголовка">
+            <button id="btnOrigTitle" class="btn active" onclick="switchTaiChiVariant('orig', this)">Базовий титр: «Stiff mornings after 60?»</button>
+            <button id="btnEditedTitle" class="btn" onclick="switchTaiChiVariant('edited', this)">Правка заголовка ($0.00): «Gentle Tai Chi for 60+»</button>
+          </div>
+
+          <ul class="spec-list">
+            <li>Упізнаваність тієї самої ~65-річної жінки та вітальні між 1-ю і 2-ю сценами через 2 кадри-маркери.</li>
+            <li>Кнопка вище демонструє команду <code>«зміни заголовок»</code> — відео не перегенерується, перерендерюються лише титри.</li>
+          </ul>
+        </article>
+
+        <!-- Example 2 -->
+        <article class="vcard">
+          <div class="vcard-head">
+            <div>
+              <h3>Приклад 2 · Desk &amp; Spine Mobility App</h3>
+              <div class="vmeta">10.0 сек · Image-to-Video + 3 титрові біти</div>
+            </div>
+            <span class="cost-tag">~$0.81 / MP4</span>
+          </div>
+
+          <div class="phone-frame">
+            <video controls playsinline preload="metadata" poster="media/posture_mobility.jpg">
+              <source src="media/ad_example_2_mobility_10s.mp4" type="video/mp4" />
+            </video>
+          </div>
+
+          <ul class="spec-list">
+            <li>Інша фітнес-ніша: ранкова розтяжка спини та плечей біля робочого столу вдома.</li>
+            <li>Компактні safe-zone титри накладені локально через FFmpeg ASS без перекриття постави людини.</li>
+            <li>Автоматична англійська озвучка + мʼяка фонова аудіопідкладка.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="pipeline-grid">
+        <!-- 2-anchor explanation -->
+        <div class="card">
+          <h2>Чому персонаж не «пливе» між сценами</h2>
+          <p class="sec-sub">Перед генерацією відео система створює 2 узгоджені маркерні зображення (початок + ключовий рух), і вже від них будує відеофрагменти.</p>
+          <div class="anchors-pair">
+            <div class="anchor-box">
+              <img src="media/tai_chi_start.jpg" alt="Anchor Frame 1 Hook" />
+              <span>Маркер 1 · Хук (початок)</span>
+            </div>
+            <div class="anchor-box">
+              <img src="media/tai_chi_mid.jpg" alt="Anchor Frame 2 Action" />
+              <span>Маркер 2 · Ключовий рух (середина)</span>
+            </div>
+          </div>
+          <p style="font-size:13px; color:var(--muted); margin:12px 0 0;">
+            Коли замовник пише <strong>«заміни першу сцену»</strong>, Python-скрипт бере <code>manifest.json</code> і перегенерує лише Сцену 1 (~$0.40–$0.56), зберігаючи 2-гу сцену та решту монтажу без повторних витрат.
+          </p>
+        </div>
+
+        <!-- Cost calculator -->
+        <div class="card">
+          <h2>Розрахунок витрат до $2.50 / ролик (15с)</h2>
+          <p class="sec-sub">На базі фактичного споживання токенів Omni 1.2 Flash у цих прикладах (49k + 48k токенів на 2x8с 720p).</p>
+
+          <div class="tier-tabs">
+            <button class="btn active" onclick="renderCost('base720', this)">720p Базовий</button>
+            <button class="btn" onclick="renderCost('retry720', this)">720p + 1 ретрай сцени</button>
+            <button class="btn" onclick="renderCost('base1080', this)">1080p Upscaled</button>
+            <button class="btn" onclick="renderCost('retry1080', this)">1080p + 1 ретрай</button>
+          </div>
+
+          <div id="costRows" class="cost-rows"></div>
+          <div id="costTotal" class="cost-total"></div>
+
+          <div class="prompt-box"># Приклад точкової правки без перезапуску всього ролика:
+python pipeline.py --replace-scene 1 --scene-prompt "New sunny porch hook..."
+python pipeline.py --update-title "Gentle Tai Chi for 60+"</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span>Python (google-genai) + Gemini 3.8 Flash + Nano Banana 2.1 + Gemini Omni 1.2 Flash + FFmpeg 8</span>
+      <span>Обовʼязкові щомісячні SaaS-платежі: $0/міс (локально) або $5–$10/міс за VPS</span>
+    </footer>
+  </main>
+
+  <script>
+    function switchTaiChiVariant(mode, btn) {
+      const video = document.getElementById("taiChiVideo");
+      const src = document.getElementById("taiChiSource");
+      document.getElementById("btnOrigTitle").classList.remove("active");
+      document.getElementById("btnEditedTitle").classList.remove("active");
+      btn.classList.add("active");
+      const currentTime = video.currentTime || 0;
+      const wasPaused = video.paused;
+      src.src = mode === "edited" ? "media/ad_example_1_title_edited.mp4" : "media/ad_example_1_taichi_15s.mp4";
+      video.load();
+      video.addEventListener("loadedmetadata", function onMeta() {
+        video.removeEventListener("loadedmetadata", onMeta);
+        video.currentTime = Math.min(currentTime, video.duration || 0);
+        if (!wasPaused) video.play().catch(() => {});
+      });
+    }
+
+    const COST_SCENARIOS = {
+      base720: {
+        rows: [
+          ["1. Розбір референсу + розкадрування (Gemini 3.8 Flash)", "$0.02"],
+          ["2. 2 кадри-маркери персонажа (Nano Banana 2.1)", "$0.09"],
+          ["3. Генерація ~15с відео 720p (Omni 1.2 Flash, $0.07/с)", "$1.05 – $1.12"],
+          ["4. Озвучка (Edge-TTS / Gemini TTS) + музика + FFmpeg титри", "$0.00 – $0.04"]
+        ],
+        total: ["Разом за 15с готовий MP4:", "$1.16 – $1.27 (до $2.50)"]
+      },
+      retry720: {
+        rows: [
+          ["1. Розбір референсу + 2 кадри-маркери + 1 перегенерація кадру", "$0.16"],
+          ["2. Генерація ~15с відео 720p (Omni 1.2 Flash)", "$1.05 – $1.12"],
+          ["3. Точкова перегенерація 1 невдалої сцени (5–8с @ 720p)", "$0.35 – $0.56"],
+          ["4. Озвучка + FFmpeg монтаж і заміна заголовка", "$0.00 – $0.04"]
+        ],
+        total: ["Разом із запасом на ретрай:", "$1.56 – $1.88 (до $2.50)"]
+      },
+      base1080: {
+        rows: [
+          ["1. Розбір референсу + 2 кадри-маркери", "$0.11"],
+          ["2. Генерація ~15с відео 1080p (Omni 1.2 Flash, $0.104/с)", "$1.56"],
+          ["3. Озвучка + музика + FFmpeg safe-zone титри", "$0.00 – $0.04"]
+        ],
+        total: ["Разом 1080p базово:", "$1.67 – $1.71 (до $2.50)"]
+      },
+      retry1080: {
+        rows: [
+          ["1. Розбір референсу + 2 кадри-маркери", "$0.11"],
+          ["2. Генерація 15с @ 1080p", "$1.56"],
+          ["3. Повторна генерація 1 сцени (4–6с @ 1080p)", "$0.42 – $0.62"],
+          ["4. Озвучка + FFmpeg монтаж", "$0.00 – $0.04"]
+        ],
+        total: ["Разом 1080p + 1 ретрай:", "$2.09 – $2.33 (в межах $2.50)"]
+      }
+    };
+
+    function renderCost(key, btn) {
+      document.querySelectorAll(".tier-tabs .btn").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      const data = COST_SCENARIOS[key];
+      document.getElementById("costRows").innerHTML = data.rows.map(
+        ([label, price]) => `<div class="cost-row"><span>${label}</span><strong>${price}</strong></div>`
+      ).join("");
+      document.getElementById("costTotal").innerHTML = `<span>${data.total[0]}</span><span>${data.total[1]}</span>`;
+    }
+
+    renderCost("base720");
+  </script>
+</body>
+</html>
