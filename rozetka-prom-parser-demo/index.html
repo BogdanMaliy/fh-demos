@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Rozetka &amp; Prom.ua — Щотижневий парсер Топ-300 (MVP Demo)</title>
+  <style>
+    :root {
+      --bg: #F6F8FA;
+      --surface: #FFFFFF;
+      --surface-alt: #F8FAFC;
+      --border: #DADCE0;
+      --border-soft: #E5E7EB;
+      --ink: #1F2937;
+      --ink-muted: #5F6368;
+      --sheets: #137333;
+      --sheets-hover: #0F5C29;
+      --sheets-soft: #E6F4EA;
+      --rozetka: #00A046;
+      --rozetka-soft: #E7F7EE;
+      --prom: #6D28D9;
+      --prom-soft: #F3E8FF;
+      --ad-bg: #FEF3C7;
+      --ad-ink: #92400E;
+      --warn-bg: #FFF7ED;
+      --warn-ink: #9A3412;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      line-height: 1.45;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .topbar {
+      background: #1E293B;
+      color: #E2E8F0;
+      font-size: 12px;
+      padding: 7px 16px;
+      text-align: center;
+    }
+    .topbar strong { color: #86EFAC; font-weight: 600; }
+
+    header.app-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .container {
+      width: 100%;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      flex-wrap: wrap;
+    }
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .sheet-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--sheets);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+    .title-block h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .title-block p {
+      margin: 2px 0 0;
+      font-size: 12.5px;
+      color: var(--ink-muted);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #F1F5F9; }
+    .btn-primary {
+      background: var(--sheets);
+      border-color: var(--sheets);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--sheets-hover);
+      border-color: var(--sheets-hover);
+    }
+
+    main { padding: 18px 0 40px; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .kpi-label {
+      font-size: 12px;
+      color: var(--ink-muted);
+      font-weight: 500;
+    }
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-sub {
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      margin-top: 3px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 8px 15px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .toolbar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      background: var(--surface-alt);
+    }
+    .toolbar label {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .toolbar select,
+    .toolbar input[type="search"],
+    .tester-input {
+      height: 35px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13px;
+      min-width: 145px;
+    }
+    .toolbar input[type="search"] { min-width: 220px; }
+    .toolbar-meta {
+      margin-left: auto;
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-weight: 500;
+    }
+
+    .sheet-scroll {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      max-height: 620px;
+      overflow-y: auto;
+    }
+    table.sheet {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+    table.sheet thead th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #1F2937;
+      color: #F9FAFB;
+      font-weight: 600;
+      text-align: left;
+      padding: 9px 10px;
+      border-right: 1px solid #374151;
+      font-size: 12px;
+      user-select: none;
+    }
+    table.sheet thead th.sortable { cursor: pointer; }
+    table.sheet thead th.sortable:hover { background: #374151; }
+    table.sheet tbody td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-soft);
+      border-right: 1px solid var(--border-soft);
+      vertical-align: middle;
+    }
+    table.sheet tbody tr:nth-child(even) { background: #FAFBFD; }
+    table.sheet tbody tr:hover { background: #EFF6FF; }
+    td.title-col {
+      white-space: normal;
+      min-width: 270px;
+      max-width: 340px;
+      line-height: 1.35;
+    }
+    td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    td.na {
+      color: #9CA3AF;
+      font-size: 11.5px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .badge-prom { background: var(--prom-soft); color: var(--prom); }
+    .badge-rz { background: var(--rozetka-soft); color: var(--rozetka); }
+    .badge-ad { background: var(--ad-bg); color: var(--ad-ink); }
+    .badge-org { background: #F1F5F9; color: #475569; }
+    .badge-ok { background: var(--sheets-soft); color: var(--sheets); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn-ink); }
+
+    a.prod-link {
+      color: #2563EB;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a.prod-link:hover { text-decoration: underline; }
+
+    .matrix-wrap {
+      padding: 18px;
+    }
+    .matrix-wrap h2, .tester-wrap h2 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .matrix-sub {
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .info-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: var(--surface-alt);
+    }
+    .info-box h3 {
+      margin: 0 0 6px;
+      font-size: 13.5px;
+    }
+    .info-box p {
+      margin: 0;
+      font-size: 12.5px;
+      color: var(--ink-muted);
+    }
+
+    .tester-wrap { padding: 18px; }
+    .tester-controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .tester-result {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--sheets-soft);
+      border: 1px solid #BBF7D0;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .dict-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .dict-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--surface-alt);
+    }
+    .dict-card label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .dict-card textarea {
+      width: 100%;
+      min-height: 58px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px 9px;
+      font-family: inherit;
+      font-size: 12px;
+      resize: vertical;
+    }
+
+    footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink-muted);
+      padding: 0 16px;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .info-grid { grid-template-columns: 1fr; }
+      .dict-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .container { padding: 0 12px; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .toolbar label { width: 100%; }
+      .toolbar select, .toolbar input[type="search"] { width: 100%; min-width: 0; }
+      .toolbar-meta { margin-left: 0; width: 100%; }
+      .tester-controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    Інтерактивний прототип MVP · <strong>Реальний тестовий зріз Rozetka &amp; Prom.ua (18 колонок)</strong> · Історичний формат для Google Sheets / Excel
+  </div>
+
+  <header class="app-header">
+    <div class="container">
+      <div class="header-inner">
+        <div class="title-block">
+          <div class="sheet-icon" aria-hidden="true">⊞</div>
+          <div>
+            <h1>Парсер Топ-300: Rozetka &amp; Prom.ua</h1>
+            <p>Ніші «Картини за номерами» та «Алмазна мозаїка» · Вивантаження у Google Таблиці / Excel</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <a class="btn btn-primary" href="./data/Sample_Rozetka_Prom_Top300_Demo.xlsx" download>
+            ⬇ Завантажити Excel (.xlsx)
+          </a>
+          <button type="button" class="btn" id="btnExportCsv">
+            ⬇ Експорт фільтру (.csv)
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="kpi-grid" aria-label="Ключові показники зрізу">
+      <div class="kpi-card">
+        <div class="kpi-label">Позицій у тестовому зрізі</div>
+        <div class="kpi-val" id="kpiTotal">—</div>
+        <div class="kpi-sub" id="kpiSplit">Завантаження реального зрізу...</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Покриття словником тематик</div>
+        <div class="kpi-val" id="kpiThemeCov">—</div>
+        <div class="kpi-sub">Налаштовується без правки коду</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Медіанна ціна зі знижкою</div>
+        <div class="kpi-val" id="kpiMedianPrice">—</div>
+        <div class="kpi-sub" id="kpiPriceRange">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Рекламні картки у видачі</div>
+        <div class="kpi-val" id="kpiAds">—</div>
+        <div class="kpi-sub">Prom ProSale + Rozetka «Реклама»</div>
+      </div>
+    </section>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab-btn active" data-tab="table">Таблиця (18 колонок)</button>
+      <button type="button" class="tab-btn" data-tab="matrix">Аудит 18 полів (Rozetka vs Prom)</button>
+      <button type="button" class="tab-btn" data-tab="dictionary">Тестер словника тематик</button>
+    </div>
+
+    <section class="panel active card" id="panel-table">
+      <div class="toolbar">
+        <label>
+          Майданчик
+          <select id="filterMarketplace">
+            <option value="all">Усі майданчики</option>
+            <option value="Prom">Prom.ua</option>
+            <option value="Rozetka">Rozetka</option>
+          </select>
+        </label>
+        <label>
+          Категорія
+          <select id="filterCategory">
+            <option value="all">Усі категорії</option>
+            <option value="Картини за номерами">Картини за номерами</option>
+            <option value="Алмазна мозаїка">Алмазна мозаїка</option>
+          </select>
+        </label>
+        <label>
+          Реклама
+          <select id="filterAd">
+            <option value="all">Усі позиції</option>
+            <option value="Так">Тільки реклама (Так)</option>
+            <option value="Ні">Тільки органіка (Ні)</option>
+          </select>
+        </label>
+        <label>
+          Тема
+          <select id="filterTheme">
+            <option value="all">Усі теми</option>
+          </select>
+        </label>
+        <label style="flex: 1 1 220px;">
+          Пошук (назва / бренд / код / розмір)
+          <input type="search" id="filterSearch" placeholder="Напр. Brushme, 40×50, BS51329..." />
+        </label>
+        <div class="toolbar-meta" id="rowsMeta">Показано: 0</div>
+      </div>
+
+      <div class="sheet-scroll">
+        <table class="sheet" id="dataTable">
+          <thead>
+            <tr>
+              <th>Дата парсингу</th>
+              <th>Майданчик</th>
+              <th>Категорія</th>
+              <th class="sortable" data-sort="position">Позиція ↕</th>
+              <th>Реклама</th>
+              <th>Назва номенклатури</th>
+              <th>Код товару</th>
+              <th>Посилання на картку</th>
+              <th>Бренд</th>
+              <th>Формат</th>
+              <th>Тема</th>
+              <th>Розмір</th>
+              <th class="sortable" data-sort="sellers_count">К-ть продавців ↕</th>
+              <th class="sortable" data-sort="rating">Рейтинг ↕</th>
+              <th class="sortable" data-sort="reviews_count">К-ть відгуків ↕</th>
+              <th class="sortable" data-sort="likes_count">К-ть вподобайок ↕</th>
+              <th class="sortable" data-sort="sales_count">К-ть продаж ↕</th>
+              <th class="sortable" data-sort="discount_price_uah">Ціна зі знижкою ↕</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="18" style="padding: 20px; text-align: center;">Завантаження даних...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel card" id="panel-matrix">
+      <div class="matrix-wrap">
+        <h2>Технічна матриця збору 18 колонок (результат живого аудиту)</h2>
+        <p class="matrix-sub">Перевірено на реальних сторінках видачі та картках обох маркетплейсів перед початком розробки.</p>
+        <div class="sheet-scroll" style="max-height: none;">
+          <table class="sheet">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Колонка у ТЗ</th>
+                <th>Prom.ua (SSR Apollo Cache)</th>
+                <th>Rozetka.com.ua (Playwright DOM / SSR)</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-box">
+            <h3>1. Історичність щотижня</h3>
+            <p>Кожен запуск додає нові рядки з новою <code>Дата парсингу</code> у спільний лист <code>Top300_History</code> (Google Sheets / Excel) — минулі тижні не затираються і легко порівнюються у зведеній таблиці.</p>
+          </div>
+          <div class="info-box">
+            <h3>2. Запуск за $0 / місяць</h3>
+            <p>Розклад налаштовується через GitHub Actions cron раз на тиждень (або локальний запуск з ПК за 1 клік). Дані напряму падають у вашу Google-таблицю або локальний `.xlsx`.</p>
+          </div>
+          <div class="info-box">
+            <h3>3. Прозорість метрик попиту</h3>
+            <p>Prom віддає реальний лічильник <code>ordersCount</code> («920+ купили»), а Rozetka — лічильник вподобайок («Список бажань»), не публікуючи кількість продажів. Обидві метрики чесно розділені.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel card" id="panel-dictionary">
+      <div class="tester-wrap">
+        <h2>Інтерактивний тестер словника тематик, формату й розміру</h2>
+        <p class="matrix-sub">Введіть будь-яку назву товару або відредагуйте ключові слова нижче — правило миттєво перекласифікує всі позиції у таблиці.</p>
+
+        <div class="tester-controls">
+          <input type="text" class="tester-input" id="testTitleInput" value="Картина за номерами Ideyka Вечірній трамвайчик біля півоній 40 х 50 см (KHO7712)" placeholder="Введіть тестову назву товару..." />
+          <button type="button" class="btn btn-primary" id="btnApplyDict">Застосувати правила до таблиці</button>
+        </div>
+
+        <div class="tester-result" id="testSingleResult"></div>
+
+        <div class="dict-grid" id="dictGrid"></div>
+      </div>
+    </section>
+
+    <footer>
+      Прототип демонстраційної вибірки для оцінки структури 18 колонок · Жодні тестові дані не вигадані — усі позиції зібрані парсером з реальної видачі Prom.ua та Rozetka.
+    </footer>
+  </main>
+
+  <script>
+    const MATRIX_ROWS = [
+      ["1", "Дата парсингу", "Автоматичний ISO-штамп тижневого зрізу", "Автоматичний ISO-штамп тижневого зрізу", "Повністю", true],
+      ["2", "Майданчик", "Prom", "Rozetka", "Повністю", true],
+      ["3", "Категорія", "Картини за номерами / Алмазна мозаїка", "Картини за номерами / Алмазна мозаїка", "Повністю", true],
+      ["4", "Позиція", "Порядок у видачі (1..300), пагінація ;2..;N", "Порядок у видачі (1..300), пагінація сторінок", "Повністю", true],
+      ["5", "Реклама (Так/Ні)", "advert.source == prom:top10:catalog:more_sales", "Бейдж «Реклама» та #primacyToken у посиланні", "Повністю", true],
+      ["6", "Назва номенклатури", "product.name з Apollo JSON", "Назва картки товару в каталозі", "Повністю", true],
+      ["7", "Код товару", "product.id (числовий ID, за потреби SKU)", "Числовий ID з URL p<id> та data-goods-id", "Повністю", true],
+      ["8", "Посилання на картку", "Пряме канонічне посилання з гіперлінком", "Канонічне посилання (очищене від рекламного #fragment)", "Повністю", true],
+      ["9", "Бренд", "manufacturerInfo.name (фолбек на назву продавця)", "Бренд зі сторінки / назви товару", "Повністю", true],
+      ["10", "Формат", "Детект «Картина за номерами» vs «Алмазна мозаїка»", "Детект «Картина за номерами» vs «Алмазна мозаїка»", "Повністю", true],
+      ["11", "Тема (за словником)", "Матчинг по конфігурованому JSON-словнику", "Матчинг по конфігурованому JSON-словнику", "Повністю", true],
+      ["12", "Розмір", "Регекс нормалізація до формату A×B см", "Регекс нормалізація до формату A×B см", "Повністю", true],
+      ["13", "К-ть продавців у топ-300", "Групування схожих сюжетів/артикулів у зрізі", "Групування схожих сюжетів/артикулів у зрізі", "Опційно (евристика)", true],
+      ["14", "Рейтинг", "productOpinionCounters.rating", "CSS width у data-testid=\"stars-rating\" (відсоток/20)", "Повністю", true],
+      ["15", "К-ть відгуків", "productOpinionCounters.count", "Лічильник біля рейтингу на картці", "Повністю", true],
+      ["16", "К-ть вподобайок", "Публічно приховано маркетплейсом", "Асинхронний лічильник біля кнопки «Список бажань»", "Тільки Rozetka", false],
+      ["17", "К-ть продаж", "ordersCount з картки товару («920+ купили»)", "Публічно приховано маркетплейсом", "Тільки Prom", false],
+      ["18", "Ціна зі знижкою", "discountedPrice (або актуальна price) у грн", "Актуальна червона/основна ціна у грн", "Повністю", true]
+    ];
+
+    let rawItems = [];
+    let activeDictionary = {};
+    let sortState = { key: null, dir: 1 };
+
+    const el = (id) => document.getElementById(id);
+
+    function extractSize(title) {
+      const m = (title || "").match(/(\d{2,3})\s*[xх×*]\s*(\d{2,3})\s*(?:см|cm)?/i);
+      if (!m) return "Не вказано";
+      const a = Number(m[1]), b = Number(m[2]);
+      return a <= b ? `${a}×${b} см` : `${b}×${a} см`;
+    }
+
+    function detectFormat(title, defFmt) {
+      const low = (title || "").toLowerCase();
+      if (["алмаз", "страз", "викладк", "мозаїк", "мозаик"].some(k => low.includes(k))) return "Алмазна мозаїка";
+      if (["за номерами", "по номерам", "розпису", "розмальов"].some(k => low.includes(k))) return "Картина за номерами";
+      return defFmt === "Картини за номерами" ? "Картина за номерами" : defFmt;
+    }
+
+    function classifyTheme(title, dict) {
+      const low = (title || "").toLowerCase();
+      for (const [themeName, words] of Object.entries(dict)) {
+        if (words.some(w => w && low.includes(w.toLowerCase()))) return themeName;
+      }
+      return "Інше / Без збігу";
+    }
+
+    function makeCell(text, cls) {
+      const td = document.createElement("td");
+      if (cls) td.className = cls;
+      td.textContent = text;
+      return td;
+    }
+
+    function makeBadgeCell(text, badgeClass, center = false) {
+      const td = document.createElement("td");
+      if (center) td.style.textAlign = "center";
+      const span = document.createElement("span");
+      span.className = `badge ${badgeClass}`;
+      span.textContent = text;
+      td.appendChild(span);
+      return td;
+    }
+
+    function getFilteredItems() {
+      const mp = el("filterMarketplace").value;
+      const cat = el("filterCategory").value;
+      const ad = el("filterAd").value;
+      const th = el("filterTheme").value;
+      const q = el("filterSearch").value.trim().toLowerCase();
+
+      const filtered = rawItems.filter(it => {
+        if (mp !== "all" && it.marketplace !== mp) return false;
+        if (cat !== "all" && it.category !== cat) return false;
+        if (ad !== "all" && it.is_ad !== ad) return false;
+        if (th !== "all" && it.theme !== th) return false;
+        if (q) {
+          const hay = `${it.title} ${it.brand} ${it.product_code} ${it.size} ${it.theme}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      if (sortState.key) {
+        const k = sortState.key;
+        filtered.sort((a, b) => {
+          const va = a[k];
+          const vb = b[k];
+          const na = va === null || va === undefined;
+          const nb = vb === null || vb === undefined;
+          if (na && nb) return 0;
+          if (na) return 1;
+          if (nb) return -1;
+          return (va - vb) * sortState.dir;
+        });
+      }
+      return filtered;
+    }
+
+    function updateKpis() {
+      const total = rawItems.length;
+      const promCount = rawItems.filter(x => x.marketplace === "Prom").length;
+      const rzCount = rawItems.filter(x => x.marketplace === "Rozetka").length;
+      const matched = rawItems.filter(x => x.theme !== "Інше / Без збігу").length;
+      const ads = rawItems.filter(x => x.is_ad === "Так").length;
+      const prices = rawItems.map(x => x.discount_price_uah).filter(x => typeof x === "number").sort((a, b) => a - b);
+      const median = prices.length ? prices[Math.floor(prices.length / 2)] : 0;
+      const minP = prices.length ? prices[0] : 0;
+      const maxP = prices.length ? prices[prices.length - 1] : 0;
+
+      el("kpiTotal").textContent = String(total);
+      el("kpiSplit").textContent = `Prom: ${promCount} · Rozetka: ${rzCount}`;
+      el("kpiThemeCov").textContent = total ? `${Math.round((matched / total) * 100)}%` : "0%";
+      el("kpiMedianPrice").textContent = `${median} ₴`;
+      el("kpiPriceRange").textContent = `Діапазон: ${minP}–${maxP} ₴`;
+      el("kpiAds").textContent = `${ads} (${total ? Math.round((ads / total) * 100) : 0}%)`;
+    }
+
+    function populateThemeFilter() {
+      const sel = el("filterTheme");
+      const current = sel.value;
+      const themes = Array.from(new Set(rawItems.map(x => x.theme)));
+      sel.innerHTML = "";
+      const allOpt = document.createElement("option");
+      allOpt.value = "all";
+      allOpt.textContent = "Усі теми";
+      sel.appendChild(allOpt);
+      for (const th of themes) {
+        const opt = document.createElement("option");
+        opt.value = th;
+        opt.textContent = `${th} (${rawItems.filter(x => x.theme === th).length})`;
+        sel.appendChild(opt);
+      }
+      if (themes.includes(current)) sel.value = current;
+    }
+
+    function renderTable() {
+      const rows = getFilteredItems();
+      el("rowsMeta").textContent = `Показано: ${rows.length} із ${rawItems.length}`;
+      const tbody = el("tableBody");
+      tbody.innerHTML = "";
+
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 18;
+        td.style.padding = "22px";
+        td.style.textAlign = "center";
+        td.textContent = "За цими фільтрами збігів не знайдено.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+      for (const it of rows) {
+        const tr = document.createElement("tr");
+        tr.appendChild(makeCell(it.parse_date));
+        tr.appendChild(makeBadgeCell(it.marketplace, it.marketplace === "Prom" ? "badge-prom" : "badge-rz"));
+        tr.appendChild(makeCell(it.category));
+        tr.appendChild(makeCell(String(it.position), "num"));
+        tr.appendChild(makeBadgeCell(it.is_ad, it.is_ad === "Так" ? "badge-ad" : "badge-org", true));
+        tr.appendChild(makeCell(it.title, "title-col"));
+        tr.appendChild(makeCell(it.product_code, "num"));
+
+        const linkTd = document.createElement("td");
+        const a = document.createElement("a");
+        a.className = "prod-link";
+        a.href = it.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = "Відкрити ↗";
+        linkTd.appendChild(a);
+        tr.appendChild(linkTd);
+
+        tr.appendChild(makeCell(it.brand));
+        tr.appendChild(makeCell(it.fmt));
+        tr.appendChild(makeBadgeCell(it.theme, it.theme === "Інше / Без збігу" ? "badge-org" : "badge-ok"));
+        tr.appendChild(makeCell(it.size));
+        tr.appendChild(makeCell(String(it.sellers_count), "num"));
+        tr.appendChild(it.rating !== null && it.rating !== undefined ? makeCell(it.rating.toFixed(1), "num") : makeCell("—", "na"));
+        tr.appendChild(it.reviews_count !== null && it.reviews_count !== undefined ? makeCell(String(it.reviews_count), "num") : makeCell("—", "na"));
+
+        if (it.likes_count !== null && it.likes_count !== undefined) {
+          tr.appendChild(makeCell(String(it.likes_count), "num"));
+        } else {
+          const td = makeCell(it.marketplace === "Prom" ? "н/д (Prom)" : "картка", "na");
+          td.title = it.marketplace === "Prom" ? "Prom.ua не показує публічно кількість вподобайок" : "Доступно при парсингу внутрішньої картки товару Rozetka";
+          tr.appendChild(td);
+        }
+
+        if (it.sales_count !== null && it.sales_count !== undefined) {
+          tr.appendChild(makeCell(`${it.sales_count}+`, "num"));
+        } else {
+          const td = makeCell(it.marketplace === "Rozetka" ? "н/д (Rozetka)" : "картка", "na");
+          td.title = it.marketplace === "Rozetka" ? "Rozetka публічно не розкриває кількість продажів" : "Доступно при допарсингу картки Prom";
+          tr.appendChild(td);
+        }
+
+        tr.appendChild(it.discount_price_uah !== null && it.discount_price_uah !== undefined ? makeCell(`${it.discount_price_uah} ₴`, "num") : makeCell("—", "na"));
+        frag.appendChild(tr);
+      }
+      tbody.appendChild(frag);
+    }
+
+    function renderMatrix() {
+      const tbody = el("matrixBody");
+      tbody.innerHTML = "";
+      for (const [num, col, promNote, rzNote, statusLabel, isOk] of MATRIX_ROWS) {
+        const tr = document.createElement("tr");
+        tr.appendChild(makeCell(num, "num"));
+        const nameTd = makeCell(col);
+        nameTd.style.fontWeight = "600";
+        tr.appendChild(nameTd);
+        const pTd = makeCell(promNote);
+        pTd.style.whiteSpace = "normal";
+        tr.appendChild(pTd);
+        const rTd = makeCell(rzNote);
+        rTd.style.whiteSpace = "normal";
+        tr.appendChild(rTd);
+        tr.appendChild(makeBadgeCell(statusLabel, isOk ? "badge-ok" : "badge-warn"));
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderSingleTest() {
+      const title = el("testTitleInput").value;
+      const fmt = detectFormat(title, "Картина за номерами");
+      const theme = classifyTheme(title, activeDictionary);
+      const size = extractSize(title);
+      const box = el("testSingleResult");
+      box.innerHTML = "";
+      [
+        ["Формат", fmt],
+        ["Тема (словник)", theme],
+        ["Розмір", size]
+      ].forEach(([lbl, val]) => {
+        const span = document.createElement("span");
+        const b = document.createElement("strong");
+        b.textContent = `${lbl}: `;
+        span.appendChild(b);
+        span.appendChild(document.createTextNode(val));
+        box.appendChild(span);
+      });
+    }
+
+    function renderDictGrid() {
+      const grid = el("dictGrid");
+      grid.innerHTML = "";
+      for (const [themeName, keywords] of Object.entries(activeDictionary)) {
+        const card = document.createElement("div");
+        card.className = "dict-card";
+        const lbl = document.createElement("label");
+        lbl.textContent = themeName;
+        const count = document.createElement("span");
+        count.textContent = `${rawItems.filter(x => x.theme === themeName).length} тов.`;
+        lbl.appendChild(count);
+        const ta = document.createElement("textarea");
+        ta.value = keywords.join(", ");
+        ta.dataset.theme = themeName;
+        card.appendChild(lbl);
+        card.appendChild(ta);
+        grid.appendChild(card);
+      }
+    }
+
+    function exportFilteredCsv() {
+      const headers = [
+        "Дата парсингу", "Майданчик", "Категорія", "Позиція", "Реклама",
+        "Назва номенклатури", "Код товару", "Посилання на картку", "Бренд",
+        "Формат", "Тема", "Розмір", "К-ть продавців", "Рейтинг",
+        "К-ть відгуків", "К-ть вподобайок", "К-ть продаж", "Ціна зі знижкою"
+      ];
+      const rows = getFilteredItems().map(x => [
+        x.parse_date, x.marketplace, x.category, x.position, x.is_ad,
+        x.title, x.product_code, x.url, x.brand, x.fmt, x.theme, x.size,
+        x.sellers_count, x.rating ?? "", x.reviews_count ?? "",
+        x.likes_count ?? "", x.sales_count ?? "", x.discount_price_uah ?? ""
+      ]);
+      const esc = (v) => `"${String(v).replaceAll('"', '""')}"`;
+      const csv = "\uFEFF" + [headers, ...rows].map(r => r.map(esc).join(",")).join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rozetka_prom_filtered_demo.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function bootstrap() {
+      renderMatrix();
+      const [itemsResp, cfgResp] = await Promise.all([
+        fetch("./data/parsed_sample.json"),
+        fetch("./data/config.json")
+      ]);
+      rawItems = await itemsResp.json();
+      const cfg = await cfgResp.json();
+      activeDictionary = cfg.theme_dictionary || {};
+
+      populateThemeFilter();
+      updateKpis();
+      renderTable();
+      renderDictGrid();
+      renderSingleTest();
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        el(`panel-${btn.dataset.tab}`).classList.add("active");
+      });
+    });
+
+    ["filterMarketplace", "filterCategory", "filterAd", "filterTheme"].forEach(id => {
+      el(id).addEventListener("change", renderTable);
+    });
+    el("filterSearch").addEventListener("input", renderTable);
+    el("btnExportCsv").addEventListener("click", exportFilteredCsv);
+    el("testTitleInput").addEventListener("input", renderSingleTest);
+
+    el("btnApplyDict").addEventListener("click", () => {
+      document.querySelectorAll("#dictGrid textarea").forEach(ta => {
+        activeDictionary[ta.dataset.theme] = ta.value
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean);
+      });
+      rawItems.forEach(it => {
+        it.theme = classifyTheme(it.title, activeDictionary);
+      });
+      populateThemeFilter();
+      updateKpis();
+      renderTable();
+      renderDictGrid();
+      renderSingleTest();
+    });
+
+    document.querySelectorAll("th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        const k = th.dataset.sort;
+        if (sortState.key === k) {
+          sortState.dir *= -1;
+        } else {
+          sortState.key = k;
+          sortState.dir = k === "position" ? 1 : -1;
+        }
+        renderTable();
+      });
+    });
+
+    bootstrap().catch(err => {
+      el("tableBody").textContent = "";
+      const tr = document.createElement("tr");
+      const td = makeCell(`Помилка завантаження даних: ${err.message}`);
+      td.colSpan = 18;
+      tr.appendChild(td);
+      el("tableBody").appendChild(tr);
+    });
+  </script>
+</body>
+</html>
